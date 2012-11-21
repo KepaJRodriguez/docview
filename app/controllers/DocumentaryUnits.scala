@@ -46,6 +46,36 @@ object DocumentaryUnits extends DocumentaryUnitCreator[DocumentaryUnit,Documenta
   val deleteView = views.html.delete.apply _
   val builder = DocumentaryUnitRepr
 
+  def timeline(page: Int, limit: Int) = userProfileAction { implicit maybeUser =>
+    implicit request =>
+
+    if (isAjaxRequest(request)) {
+      AsyncRest {
+        rest.EntityDAO(entityType, maybeUser.flatMap(_.profile))
+          .page(math.max(page, 1), math.max(limit, 1)).map { itemOrErr =>
+            itemOrErr.right.map { page => 
+            
+              import com.codahale.jerkson.Json.generate
+
+              val items = page.list.map(builder(_)).filterNot(_.dates.isEmpty).map { doc =>
+                Map(
+                  "title" -> doc.name,
+                  "start" -> doc.dates.map(_.to).headOption.map(_.startDate.getYear.toString).getOrElse(""),
+                  "end" -> doc.dates.map(_.to).lastOption.flatMap(_.endDate).map(_.getYear.toString).getOrElse(""),
+                  "description" ->
+                  doc.descriptions.headOption.flatMap(_.stringProperty(DocumentaryUnit.SCOPE_CONTENT.id)).getOrElse("")
+                )
+              }
+
+              Ok(generate(items)).as("application/json") 
+            }
+          }
+      }
+    } else {
+      Ok(views.html.documentaryUnit.timeline(maybeUser, request))
+    }
+  }
+  
 /*  def publishPost(id: String) = userProfileAction { implicit maybeUser =>
     implicit request =>
       AsyncRest {

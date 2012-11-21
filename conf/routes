@@ -26,6 +26,7 @@ GET		/test			  controllers.Application.test
 # Home page
 GET     /                           controllers.Application.index
 GET     /documentaryUnit/list           controllers.DocumentaryUnits.list(page: Int ?= 1, limit: Int ?=20)
+GET     /documentaryUnit/timeline       controllers.DocumentaryUnits.timeline(page: Int ?=1, limit: Int ?=20)
 GET     /documentaryUnit/show/:id       controllers.DocumentaryUnits.get(id: String)
 GET     /documentaryUnit/json/:id       controllers.DocumentaryUnits.getJson(id: String)
 GET     /documentaryUnit/delete/:id     controllers.DocumentaryUnits.delete(id: String)
