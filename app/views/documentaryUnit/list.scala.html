@@ -2,7 +2,8 @@
 
 @main("View item")(maybeUser, req) {
 
-	<h3>Displaying items @(page.offset + 1) to @(page.offset + page.list.size) of @page.total</h3>
+	<h3>Displaying items @(page.offset + 1) to @(page.offset + page.list.size) of @page.total (<a
+            href="@routes.DocumentaryUnits.timeline(page.page.toInt, page.limit.toInt)#explorer">Timeline</a>)</h3>
   
 	<div id="pagination" class="pagination">
     	<ul>
