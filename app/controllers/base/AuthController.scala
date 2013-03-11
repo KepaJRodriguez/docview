@@ -115,7 +115,7 @@ trait AuthController extends Controller with ControllerHelpers with Auth with Au
       for { r1 <- getProf; r2 <- getGlobalPerms } yield {
         for { entity <- r1.right; gperms <- r2.right } yield {
           val up = UserProfile(entity, account = Some(account), globalPermissions = Some(gperms))
-          Cache.set(up.id, up)
+          Cache.set(up.id, up, expiration = 60 * 60) // Cache for 1 hour
           up
         }
       }
