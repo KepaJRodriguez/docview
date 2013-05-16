@@ -44,6 +44,10 @@ GET /filter                       controllers.Search.filterType(type: Option[Str
 # Change locale
 GET     /locale                         controllers.Application.changeLocale
 
+# Help
+GET     /help                       controllers.Help.list
+GET     /help/:page                 controllers.Help.page(page: String)
+
 # Home page
 GET     /                           controllers.Application.index
 GET     /docs                controllers.DocumentaryUnits.search

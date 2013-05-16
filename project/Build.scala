@@ -46,6 +46,9 @@ object ApplicationBuild extends Build {
     // Bits that get automatically imported into templates...
     templatesImport ++= Seq("models.base._", "models.forms._", "acl._", "defines._"),
 
+    // We want to see the markdown files within /help (as well as /public)
+    playAssetDirectories <+= baseDirectory / "help",
+
 
     resolvers += "neo4j-public-repository" at "http://m2.neo4j.org/content/groups/public",
     resolvers += "Local Maven Repository" at "file:///"+Path.userHome.absolutePath+"/.m2/repository",

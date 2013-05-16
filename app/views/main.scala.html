@@ -181,6 +181,7 @@
                                     </li>
                                 }
                             }
+                            @activeIfCurrent(routes.Help.list(), Messages("pages.help"))
                         </ul>
                         <ul class="nav pull-right">
                             @userOpt.flatMap(_.account).map { account =>

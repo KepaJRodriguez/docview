@@ -1,0 +1,9 @@
+@(pages: List[String])(implicit maybeUser: Option[UserProfile], req: RequestHeader, lang: Lang, flash: Flash)
+
+@noSidebarLayout(Messages("help.topics")) {
+  <ul>
+      @pages.map { page =>
+          <li><a href="@routes.Help.page(page)">@page.replace("_", " ")</a></li>
+      }
+  </ul>
+}

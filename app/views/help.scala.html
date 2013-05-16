@@ -1,0 +1,5 @@
+@(name: String, text: String)(implicit maybeUser: Option[UserProfile], req: RequestHeader, lang: Lang, flash: Flash)
+
+@noSidebarLayout(name.replace("_", " ")) {
+  @Html(views.Helpers.renderMarkdown(text))
+}
