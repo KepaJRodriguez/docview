@@ -8,6 +8,7 @@ import java.util.NoSuchElementException
 
 
 object AccessPointF {
+
   val TYPE = "type"
   val DESCRIPTION = "description"
   val TARGET = "name" // Change to something better!
@@ -21,6 +22,8 @@ object AccessPointF {
     val PlaceAccess = Value("placeAccess")
     val Other = Value("otherAccess")
   }
+
+  lazy implicit val accessPointFormat = json.AccessPointFormat.accessPointFormat
 }
 
 case class AccessPointF(
@@ -31,13 +34,12 @@ case class AccessPointF(
 ) extends Persistable {
   val isA = EntityType.AccessPoint
 
-  import models.json.AccessPointFormat._
   def toJson: JsValue = Json.toJson(this)
 }
 
 
 case class AccessPoint(val e: Entity) extends AnnotatableEntity with NamedEntity with Formable[AccessPointF] {
-  import json.AccessPointFormat._
+
   lazy val formable: AccessPointF = Json.toJson(e).as[AccessPointF]
   lazy val formableOpt: Option[AccessPointF] = Json.toJson(e).asOpt[AccessPointF]
 

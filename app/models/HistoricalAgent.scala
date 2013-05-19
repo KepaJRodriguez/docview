@@ -19,6 +19,8 @@ object HistoricalAgentF {
   final val UNNAMED_PLACEHOLDER = "UNNAMED Authority"
 
   val PUBLICATION_STATUS = "publicationStatus"
+
+  lazy implicit val jsonFormat = json.HistoricalAgentFormat.historicalAgentFormat
 }
 
 case class HistoricalAgentF(
@@ -29,7 +31,6 @@ case class HistoricalAgentF(
 ) extends Persistable {
   val isA = EntityType.HistoricalAgent
 
-  import json.HistoricalAgentFormat._
   def toJson: JsValue = Json.toJson(this)
 }
 
@@ -46,7 +47,6 @@ case class HistoricalAgent(val e: Entity)
 
   val publicationStatus = e.property(HistoricalAgentF.PUBLICATION_STATUS).flatMap(enumReads(PublicationStatus).reads(_).asOpt)
 
-  import json.HistoricalAgentFormat._
   lazy val formable: HistoricalAgentF = Json.toJson(e).as[HistoricalAgentF]
   lazy val formableOpt: Option[HistoricalAgentF] = Json.toJson(e).asOpt[HistoricalAgentF]
 

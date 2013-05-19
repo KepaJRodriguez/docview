@@ -9,8 +9,11 @@ import defines.EnumUtils.enumWrites
 
 
 object AuthoritativeSetF {
+
   val NAME = "name"
   val DESCRIPTION = "description"
+
+  lazy implicit val authoritativeSetFormat = json.AuthoritativeSetFormat.authoritativeSetFormat
 }
 
 case class AuthoritativeSetF(
@@ -21,7 +24,6 @@ case class AuthoritativeSetF(
 ) extends Persistable {
   val isA = EntityType.AuthoritativeSet
 
-  import json.AuthoritativeSetFormat._
   def toJson = Json.toJson(this)
 }
 
@@ -36,7 +38,6 @@ case class AuthoritativeSet(e: Entity)
   with AnnotatableEntity
   with Formable[AuthoritativeSetF] {
 
-  import json.AuthoritativeSetFormat._
   lazy val formable: AuthoritativeSetF = Json.toJson(e).as[AuthoritativeSetF]
   lazy val formableOpt: Option[AuthoritativeSetF] = Json.toJson(e).asOpt[AuthoritativeSetF]
 }

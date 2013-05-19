@@ -10,6 +10,8 @@ object GroupF {
 
   val NAME = "name"
   val DESCRIPTION = "description"
+
+  lazy implicit val groupFormat = json.GroupFormat.groupFormat
 }
 
 case class GroupF(
@@ -20,14 +22,11 @@ case class GroupF(
 ) extends Persistable {
   val isA = EntityType.Group
 
-  import json.GroupFormat._
   def toJson = Json.toJson(this)
 }
 
 
 case class Group(val e: Entity) extends NamedEntity with AccessibleEntity with Accessor with Formable[GroupF] {
-
-  import json.GroupFormat._
   lazy val formable: GroupF = Json.toJson(e).as[GroupF]
   lazy val formableOpt: Option[GroupF] = Json.toJson(e).asOpt[GroupF]
 }

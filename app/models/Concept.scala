@@ -9,6 +9,7 @@ import play.api.libs.json.Json
 import play.api.i18n.Lang
 
 object ConceptF {
+
   val LANGUAGE = "languageCode"
   val PREFLABEL = "name"
   val ALTLABEL = "altLabel"
@@ -19,6 +20,8 @@ object ConceptF {
   object ConceptType extends Enumeration {
     type Type = Value
   }
+
+  implicit val conceptFormat = json.ConceptFormat.conceptFormat
 }
 
 case class ConceptF(
@@ -28,7 +31,6 @@ case class ConceptF(
 ) extends Persistable {
   val isA = EntityType.Concept
 
-  import json.ConceptFormat._
   def toJson = Json.toJson(this)
 }
 
@@ -60,7 +62,6 @@ case class Concept(e: Entity)
   lazy val vocabulary: Option[Vocabulary] = e.relations(Concept.IN_SET_REL).headOption.map(Vocabulary(_))
   lazy val broaderTerms: List[Concept] = e.relations(Concept.BT_REL).map(Concept(_))
 
-  import json.ConceptFormat._
   lazy val formable: ConceptF = Json.toJson(e).as[ConceptF]
   lazy val formableOpt: Option[ConceptF] = Json.toJson(e).asOpt[ConceptF]
 

@@ -5,42 +5,6 @@ import play.api.libs.json.{JsValue, Json}
 import defines.EntityType
 
 
-case class DocumentaryUnitDescription(val e: Entity)
-  extends Description
-  with TemporalEntity
-  with Formable[DocumentaryUnitDescriptionF] {
-
-  // This should have one logical object
-  val item: Option[DocumentaryUnit] = e.relations(DescribedEntity.DESCRIBES_REL).headOption.map(DocumentaryUnit(_))
-
-  import json.IsadGFormat._
-  lazy val formable = Json.toJson(e).as[DocumentaryUnitDescriptionF]
-  lazy val formableOpt = Json.toJson(e).asOpt[DocumentaryUnitDescriptionF]
-}
-
-
-case class DocumentaryUnitDescriptionF(
-  val id: Option[String],
-  val languageCode: String,
-  val title: Option[String] = None,
-  @Annotations.Relation(TemporalEntity.DATE_REL)
-  val dates: List[DatePeriodF] = Nil,
-  val levelOfDescription: Option[IsadG.LevelOfDescription.Value] = None,
-  val extentAndMedium: Option[String] = None,
-  val context: DocumentaryUnitDescriptionF.Context,
-  val content: DocumentaryUnitDescriptionF.Content,
-  val conditions: DocumentaryUnitDescriptionF.Conditions,
-  val materials: DocumentaryUnitDescriptionF.Materials,
-  val control: DocumentaryUnitDescriptionF.Control,
-  val accessPoints: List[AccessPointF]
-  ) extends Persistable {
-  val isA = EntityType.DocumentaryUnitDescription
-
-  import json.IsadGFormat._
-  def toJson: JsValue = Json.toJson(this)
-}
-
-
 object DocumentaryUnitDescriptionF {
 
   case class Context(
@@ -77,5 +41,38 @@ object DocumentaryUnitDescriptionF {
     val rulesAndConventions: Option[String] = None,
     val datesOfDescriptions: Option[String] = None
     )
+
+  lazy implicit val documentaryUnitDescriptionFormat = json.IsadGFormat.isadGFormat
 }
 
+case class DocumentaryUnitDescriptionF(
+  val id: Option[String],
+  val languageCode: String,
+  val title: Option[String] = None,
+  @Annotations.Relation(TemporalEntity.DATE_REL)
+  val dates: List[DatePeriodF] = Nil,
+  val levelOfDescription: Option[IsadG.LevelOfDescription.Value] = None,
+  val extentAndMedium: Option[String] = None,
+  val context: DocumentaryUnitDescriptionF.Context,
+  val content: DocumentaryUnitDescriptionF.Content,
+  val conditions: DocumentaryUnitDescriptionF.Conditions,
+  val materials: DocumentaryUnitDescriptionF.Materials,
+  val control: DocumentaryUnitDescriptionF.Control,
+  val accessPoints: List[AccessPointF]
+  ) extends Persistable {
+  val isA = EntityType.DocumentaryUnitDescription
+
+  def toJson: JsValue = Json.toJson(this)
+}
+
+case class DocumentaryUnitDescription(val e: Entity)
+  extends Description
+  with TemporalEntity
+  with Formable[DocumentaryUnitDescriptionF] {
+
+  // This should have one logical object
+  val item: Option[DocumentaryUnit] = e.relations(DescribedEntity.DESCRIBES_REL).headOption.map(DocumentaryUnit(_))
+
+  lazy val formable = Json.toJson(e).as[DocumentaryUnitDescriptionF]
+  lazy val formableOpt = Json.toJson(e).asOpt[DocumentaryUnitDescriptionF]
+}

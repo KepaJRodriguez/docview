@@ -20,6 +20,8 @@ object UserProfileF {
   val LOCATION = "location"
   val ABOUT = "about"
   val LANGUAGES = "languages"
+
+  lazy implicit val userProfileFormat = json.UserProfileFormat.userProfileFormat
 }
 
 case class UserProfileF(
@@ -32,8 +34,6 @@ case class UserProfileF(
 ) extends Persistable {
   val isA = EntityType.UserProfile
 
-  import Entity._
-  import json.UserProfileFormat._
   def toJson = Json.toJson(this)
 }
 
@@ -62,7 +62,6 @@ case class UserProfile(
     }.getOrElse(false)
   }
 
-  import json.UserProfileFormat._
   lazy val formable: UserProfileF = Json.toJson(e).as[UserProfileF]
   lazy val formableOpt: Option[UserProfileF] = Json.toJson(e).asOpt[UserProfileF]
 }
