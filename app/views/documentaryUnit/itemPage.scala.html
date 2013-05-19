@@ -26,4 +26,7 @@
 	
     @html
 
+    <ul class="item-actions nav nav-tabs nav-stacked">
+        <li><a href="@routes.ApiController.getItem(ContentType.DocumentaryUnit.toString, item.id)">@Messages("actions.exportJson")</a></li>
+    </ul>
 }
