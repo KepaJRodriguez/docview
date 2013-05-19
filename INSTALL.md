@@ -10,9 +10,10 @@ Download Solr and extract it to the location of your choice (using ~/apps for th
 
 	curl -0 http://mirrors.ukfast.co.uk/sites/ftp.apache.org/lucene/solr/4.2.1/solr-4.2.1.tgz | tar -zx -C ~/apps
 
-For now, re-use the example Solr core (named "collection1", inside the example/solr direction).  As a shortcut, you can just grab the schema.xml from Github:
+For now, re-use the example Solr core (named "collection1", inside the example/solr direction).  As a shortcut, you can just grab the `schema.xml` and `solrconfig.xml` from Github:
 
 	curl https://raw.github.com/mikesname/docview/master/etc/schema.xml > ~/apps/solr-4.2.1/example/solr/collection1/conf/schema.xml
+	curl https://raw.github.com/mikesname/docview/master/etc/solrconfig.xml > ~/apps/solr-4.2.1/example/solr/collection1/conf/solrconfig.xml
 
 You should now able able to start the Solr server in another shell:
 
@@ -22,7 +23,7 @@ You should now able able to start the Solr server in another shell:
 If that starts without spewing out any dodgy-looking stack traces all should be well. You can verify this by going to http://localhost:8983/solr which should display the Solr admin page.
 
 
-## Installing Play 2.1:
+### Installing Play 2.1:
 
 Download and install Play 2.1:
 
@@ -33,6 +34,8 @@ Download and install Play 2.1:
 Add the "play" command to your path (and your personal .bashrc/.profile if desired):
 
     export PATH=$PATH:$HOME/apps/play-${PLAY_VERSION}
+    
+## Setting up the development code:
 
 Download the source from Github:
 
@@ -72,11 +75,11 @@ We can now see if the app actually works:
 
     play run
 
-Now, visit http://localhost:9000 in your browser. The app should show a screen saying it needs to apply a migration to the database.** Click the "Apply This Script Now" button.**
+Now, visit http://localhost:9000 in your browser. The app should show a screen saying it needs to apply a migration to the database. **Click the "Apply This Script Now" button.**
 
 Next, we have a little problem because we need to create the login details of our administrative user in the authorisation database. Unfortunately there is no way at present to do this without mucking with the database directly.
 
-**Log in via OpenID**. The application with create you a default user id (like user00001), but by default your account will have no privileges. We need to change the default generated user ID to the one your earlier created in Neo4j.
+**Log in via OpenID**. The application with create you a default user id (like user00001), but by default your account will have no privileges. We need to change the default generated user ID to the one you earlier created in Neo4j.
 
 So open up the Postgres shell again:
 

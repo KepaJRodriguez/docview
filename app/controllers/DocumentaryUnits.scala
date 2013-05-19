@@ -33,7 +33,7 @@ object DocumentaryUnits extends CreationContext[DocumentaryUnitF, DocumentaryUni
 
   // Documentary unit facets
   import solr.facet._
-  val entityFacets = List(
+  override val entityFacets = List(
     FieldFacetClass(
       key=IsadG.LANG_CODE,
       name=Messages(IsadG.FIELD_PREFIX + "." + IsadG.LANG_CODE),
@@ -43,7 +43,8 @@ object DocumentaryUnits extends CreationContext[DocumentaryUnitF, DocumentaryUni
     FieldFacetClass(
       key="holderName",
       name=Messages("documentaryUnit.heldBy"),
-      param="holder"
+      param="holder",
+      sort = FacetSort.Name
     ),
     FieldFacetClass(
       key="copyrightStatus",
@@ -100,9 +101,7 @@ object DocumentaryUnits extends CreationContext[DocumentaryUnitF, DocumentaryUni
   val descriptionForm = models.forms.IsadGForm.form
   val builder = DocumentaryUnit
 
-  val searchEntities = List(entityType)
-
-  val DEFAULT_SEARCH_PARAMS = SearchParams(sort = Some(SearchOrder.Name), entities=searchEntities)
+  val DEFAULT_SEARCH_PARAMS = SearchParams(entities=List(entityType))
 
 
   def search = {
@@ -111,7 +110,7 @@ object DocumentaryUnits extends CreationContext[DocumentaryUnitF, DocumentaryUni
     val filters = Map("depthOfDescription" -> 0)
     searchAction(filters, defaultParams = Some(DEFAULT_SEARCH_PARAMS)) {
       page => params => facets => implicit userOpt => implicit request =>
-        Ok(views.html.search.search(page, params, facets, routes.DocumentaryUnits.search))
+        Ok(views.html.documentaryUnit.search(page, params, facets, routes.DocumentaryUnits.search))
     }
   }
 
@@ -230,7 +229,7 @@ object DocumentaryUnits extends CreationContext[DocumentaryUnitF, DocumentaryUni
 
   def deletePost(id: String) = deletePostAction(id) {
       ok => implicit userOpt => implicit request =>
-    Redirect(routes.DocumentaryUnits.list())
+    Redirect(routes.DocumentaryUnits.search())
         .flashing("success" -> Messages("confirmations.itemWasDeleted", id))
   }
 

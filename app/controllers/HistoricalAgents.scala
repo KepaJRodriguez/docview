@@ -21,6 +21,14 @@ object HistoricalAgents extends CRUD[HistoricalAgentF,HistoricalAgent]
   with EntityAnnotate[HistoricalAgent]
   with EntitySearch {
 
+  val targetContentTypes = Seq(ContentType.DocumentaryUnit)
+
+  val entityType = EntityType.HistoricalAgent
+  val contentType = ContentType.HistoricalAgent
+
+  val form = models.forms.HistoricalAgentForm.form
+  val builder = HistoricalAgent
+
   val listFilterMappings = ListMap[String,String](
     AccessibleEntity.NAME -> s"<-describes.${Isaar.AUTHORIZED_FORM_OF_NAME}",
     Entity.IDENTIFIER -> Entity.IDENTIFIER,
@@ -34,45 +42,37 @@ object HistoricalAgents extends CRUD[HistoricalAgentF,HistoricalAgent]
 
   val DEFAULT_SORT = s"<-describes.${Isaar.AUTHORIZED_FORM_OF_NAME}"
 
-  val DEFAULT_SEARCH_PARAMS = SearchParams(sort = Some(SearchOrder.Name))
-
-
   // Documentary unit facets
   import solr.facet._
-  val entityFacets = List(
+  override val entityFacets = List(
     FieldFacetClass(
       key=models.Isaar.ENTITY_TYPE,
       name=Messages(Isaar.FIELD_PREFIX + "." + Isaar.ENTITY_TYPE),
       param="cpf",
       render=s => Messages(Isaar.FIELD_PREFIX + "." + s)
+    ),
+    FieldFacetClass(
+      key="holderName",
+      name=Messages(s"$entityType.authoritativeSet"),
+      param="set",
+      sort = FacetSort.Name
     )
   )
-
-  val searchEntities = List(
-    EntityType.HistoricalAgentDescription,
-    EntityType.HistoricalAgent
-  )
-
-
   override def processParams(params: ListParams): rest.RestPageParams = {
     params.toRestParams(listFilterMappings, orderMappings, Some(DEFAULT_SORT))
   }
   override def processChildParams(params: ListParams) = DocumentaryUnits.processChildParams(params)
 
 
-  val targetContentTypes = Seq(ContentType.DocumentaryUnit)
 
-  val entityType = EntityType.HistoricalAgent
-  val contentType = ContentType.HistoricalAgent
-
-  val form = models.forms.HistoricalAgentForm.form
-  val builder = HistoricalAgent
+  // Search params
+  val DEFAULT_SEARCH_PARAMS = SearchParams(entities = List(entityType))
 
 
   def search = {
     searchAction(defaultParams = Some(DEFAULT_SEARCH_PARAMS)) {
       page => params => facets => implicit userOpt => implicit request =>
-        Ok(views.html.search.search(page, params, facets, routes.HistoricalAgents.search))
+        Ok(views.html.historicalAgent.search(page, params, facets, routes.HistoricalAgents.search))
     }
   }
 
@@ -88,22 +88,6 @@ object HistoricalAgents extends CRUD[HistoricalAgentF,HistoricalAgent]
 
   def list = listAction { page => params => implicit userOpt => implicit request =>
     Ok(views.html.historicalAgent.list(page.copy(items = page.items.map(HistoricalAgent(_))), params))
-  }
-
-  def create = createAction {
-      users => groups => implicit userOpt => implicit request =>
-    Ok(views.html.historicalAgent.create(form,
-        VisibilityForm.form, users, groups, routes.HistoricalAgents.createPost))
-  }
-
-  def createPost = createPostAction(form) { formsOrItem => implicit userOpt => implicit request =>
-    formsOrItem match {
-      case Left((errorForm,accForm)) => getUsersAndGroups { users => groups =>
-        BadRequest(views.html.historicalAgent.create(errorForm, accForm, users, groups, routes.HistoricalAgents.createPost))
-      }
-      case Right(item) => Redirect(routes.HistoricalAgents.get(item.id))
-        .flashing("success" -> Messages("confirmations.itemWasCreated", item.id))
-    }
   }
 
   def update(id: String) = updateAction(id) {
@@ -128,7 +112,7 @@ object HistoricalAgents extends CRUD[HistoricalAgentF,HistoricalAgent]
   }
 
   def deletePost(id: String) = deletePostAction(id) { ok => implicit userOpt => implicit request =>
-    Redirect(routes.HistoricalAgents.list())
+    Redirect(routes.HistoricalAgents.search())
         .flashing("success" -> Messages("confirmations.itemWasDeleted", id))
   }
 

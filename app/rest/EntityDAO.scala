@@ -76,8 +76,10 @@ case class RestPageParams(page: Option[Int] = None, limit: Option[Int] = None, f
     sort = if (sort.isEmpty) default.sort else sort
   )
 
+  def offset: Int = (page.getOrElse(1) - 1) * limit.getOrElse(DEFAULT_LIST_LIMIT)
+  def range: String = s"$offset-${offset + limit.getOrElse(DEFAULT_LIST_LIMIT)}"
+
   override def toString = {
-    val offset = (page.getOrElse(1) - 1) * limit.getOrElse(DEFAULT_LIST_LIMIT)
     "?" + List(
       s"${OFFSET_PARAM}=${offset}",
       s"${LIMIT_PARAM}=${limit.getOrElse(DEFAULT_LIST_LIMIT)}",
@@ -137,6 +139,10 @@ case class EntityDAO(entityType: EntityType.Type, userProfile: Option[UserProfil
 
   import EntityDAO._
   import play.api.http.Status._
+  import Entity.entityReads
+
+  // Implicit reader for pages of items
+  implicit val entityPageReads = PageReads.pageReads
 
   def requestUrl = "http://%s:%d/%s/%s".format(host, port, mount, entityType)
 
@@ -194,35 +200,90 @@ case class EntityDAO(entityType: EntityType.Type, userProfile: Option[UserProfil
     }
   }
 
-  def page(params: RestPageParams): Future[Either[RestError, Page[Entity]]] = {
-    import Entity.entityReads
-    implicit val entityPageReads = PageReads.pageReads
-    WS.url(enc(requestUrl, "page", params.toString))
-        .withHeaders(authHeaders.toSeq: _*).get.map { response =>
+  def list(params: RestPageParams = RestPageParams()): Future[Either[RestError, List[Entity]]] = {
+    WS.url(enc(requestUrl, "list" + params.toString))
+      .withHeaders(authHeaders.toSeq: _*).get.map { response =>
       checkError(response).right.map { r =>
-        r.json.validate[Page[models.Entity]].fold(
-          valid = { page => page },
+        r.json.validate[List[models.Entity]].fold(
+          valid = { list => list },
           invalid = { e =>
-            sys.error("Unable to decode paginated list result: " + e.toString)
+            sys.error(s"Unable to decode list result: $e: ${r.json}")
           }
         )
       }
     }
   }
 
-  def pageChildren(id: String, params: RestPageParams): Future[Either[RestError, Page[Entity]]] = {
-    import Entity.entityReads
+  def listChildren(id: String, params: RestPageParams = RestPageParams()): Future[Either[RestError, List[Entity]]] = {
+    WS.url(enc(requestUrl, id, "list" + params.toString))
+      .withHeaders(authHeaders.toSeq: _*).get.map { response =>
+      checkError(response).right.map { r =>
+        r.json.validate[List[models.Entity]].fold(
+          valid = { list => list },
+          invalid = { e =>
+            sys.error(s"Unable to decode list result: $e: ${r.json}")
+          }
+        )
+      }
+    }
+  }
+
+  def page(params: RestPageParams = RestPageParams()): Future[Either[RestError, Page[Entity]]] = {
+    WS.url(enc(requestUrl, "page" + params.toString))
+        .withHeaders(authHeaders.toSeq: _*).get.map { response =>
+      checkError(response).right.map { r =>
+        r.json.validate[Page[models.Entity]].fold(
+          valid = { page => page },
+          invalid = { e =>
+            sys.error(s"Unable to decode paginated list result: $e: ${r.json}")
+          }
+        )
+      }
+    }
+  }
+
+  def pageChildren(id: String, params: RestPageParams = RestPageParams()): Future[Either[RestError, Page[Entity]]] = {
     implicit val entityPageReads = PageReads.pageReads
-    WS.url(enc(requestUrl, id, "page", params.toString))
+    WS.url(enc(requestUrl, id, "page" + params.toString))
       .withHeaders(authHeaders.toSeq: _*).get.map { response =>
       checkError(response).right.map { r =>
         r.json.validate[Page[models.Entity]].fold(
           valid = { page => page },
           invalid = { e =>
-            sys.error("Unable to decode paginated list result: " + e.toString)
+            sys.error(s"Unable to decode paginated list result: $e: ${r.json}")
           }
         )
       }
+    }
+  }
+
+  def count(params: RestPageParams = RestPageParams()): Future[Either[RestError, Long]] = {
+    WS.url(enc(requestUrl, "count" + params.toString))
+        .withHeaders(authHeaders.toSeq: _*).get.map { response =>
+      // FIXME: Check actual error content...
+      checkError(response).right.map(r => {
+        r.json.validate[Long].fold(
+          valid = { count => count },
+          invalid = { e =>
+            sys.error(s"Unable to decode count result: $e: ${r.json}")
+          }
+        )
+      })
+    }
+  }
+
+  def countChildren(id: String, params: RestPageParams = RestPageParams()): Future[Either[RestError, Long]] = {
+    WS.url(enc(requestUrl, id, "count" + params.toString))
+        .withHeaders(authHeaders.toSeq: _*).get.map { response =>
+      // FIXME: Check actual error content...
+      checkError(response).right.map(r => {
+        r.json.validate[Long].fold(
+          valid = { count => count },
+          invalid = { e =>
+            sys.error(s"Unable to decode count result: $e: ${r.json}")
+          }
+        )
+      })
     }
   }
 }

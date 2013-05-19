@@ -17,6 +17,7 @@ import play.api.libs.json.JsObject
 import models.DocumentaryUnit
 import defines.EntityType
 import play.api.libs.iteratee.Input.Empty
+import play.api.i18n.Lang
 
 /**
  * Object containing functions for managing the Solr index.
@@ -128,6 +129,7 @@ object SolrIndexer extends RestDAO {
       case EntityType.HistoricalAgent => actorToSolr(HistoricalAgent(item))
       case EntityType.Repository => repoToSolr(Repository(item))
       case EntityType.Concept => conceptToSolr(Concept(item))
+      case EntityType.Country => countryToSolr(Country(item))
       case any => entityToSolr(item)
     }
   }
@@ -150,6 +152,8 @@ object SolrIndexer extends RestDAO {
     // FIXME: This is very stupid
     descriptions.zipWithIndex.map { case (desc,i) =>
       ((desc
+        + ("holderId" -> Json.toJson(d.set.map(_.id)))
+        + ("holderName" -> Json.toJson(d.set.map(_.toString)))
         + (Isaar.ENTITY_TYPE -> Json.toJson(d.descriptions(i).stringProperty(Isaar.ENTITY_TYPE)))))
     }
   }
@@ -163,6 +167,13 @@ object SolrIndexer extends RestDAO {
     }
   }
 
+  private def countryToSolr(d: Country): List[JsObject] = {
+    val docs = entityToSolr(d.e)
+    docs.map { desc =>
+      (desc + ("name" -> Json.toJson(views.Helpers.countryCodeToName(d.id)(new Lang("en")))))
+    }
+  }
+
   /**
    * Convert a Concept to JSON
    * @param c
@@ -173,8 +184,8 @@ object SolrIndexer extends RestDAO {
     descriptions.map { desc =>
       ((desc
         + ("parentId" -> Json.toJson(c.broaderTerms.map(_.id)))
-        + ("vocabularyId_s" -> Json.toJson(c.vocabulary.map(_.id))))
-        + ("vocabularyName_s" -> Json.toJson(c.vocabulary.map(_.name))))
+        + ("holderId" -> Json.toJson(c.vocabulary.map(_.id))))
+        + ("holderName" -> Json.toJson(c.vocabulary.map(_.toString))))
     }
   }
 

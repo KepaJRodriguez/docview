@@ -150,8 +150,6 @@ GET     /cpf/list           controllers.HistoricalAgents.list
 GET     /cpf/show/:id       controllers.HistoricalAgents.get(id: String)
 GET     /cpf/history/:id    controllers.HistoricalAgents.history(id: String)
 GET     /cpf/json/:id       controllers.HistoricalAgents.getJson(id: String)
-GET     /cpf/create         controllers.HistoricalAgents.create
-POST    /cpf/create         controllers.HistoricalAgents.createPost
 GET     /cpf/delete/:id     controllers.HistoricalAgents.delete(id: String)
 POST    /cpf/delete/:id     controllers.HistoricalAgents.deletePost(id: String)
 GET     /cpf/update/:id     controllers.HistoricalAgents.update(id: String)
@@ -193,7 +191,31 @@ POST    /vocabs/scope/:id/:userType/:userId    controllers.Vocabularies.setScope
 GET     /vocabs/annotate/:id     controllers.Vocabularies.annotate(id: String)
 POST    /vocabs/annotate/:id     controllers.Vocabularies.annotatePost(id: String)
 
-GET     /country                controllers.Countries.list
+GET     /sets                controllers.AuthoritativeSets.list
+GET     /sets/show/:id       controllers.AuthoritativeSets.get(id: String)
+GET     /sets/history/:id    controllers.AuthoritativeSets.history(id: String)
+GET     /sets/json/:id       controllers.AuthoritativeSets.getJson(id: String)
+GET     /sets/create          controllers.AuthoritativeSets.create
+POST    /sets/create          controllers.AuthoritativeSets.createPost
+GET     /sets/delete/:id     controllers.AuthoritativeSets.delete(id: String)
+POST    /sets/delete/:id     controllers.AuthoritativeSets.deletePost(id: String)
+GET     /sets/update/:id     controllers.AuthoritativeSets.update(id: String)
+POST    /sets/update/:id     controllers.AuthoritativeSets.updatePost(id: String)
+GET     /sets/create/:id     controllers.AuthoritativeSets.createHistoricalAgent(id: String)
+POST    /sets/create/:id     controllers.AuthoritativeSets.createHistoricalAgentPost(id: String)
+GET     /sets/visibility/:id     controllers.AuthoritativeSets.visibility(id: String)
+POST    /sets/visibility/:id     controllers.AuthoritativeSets.visibilityPost(id: String)
+GET     /sets/permissions/:id/manage    controllers.AuthoritativeSets.managePermissions(id: String, page: Int ?= 1, spage: Int ?= 1, limit: Int ?=20)
+GET     /sets/permissions/:id/add    controllers.AuthoritativeSets.addItemPermissions(id: String)
+GET     /sets/permissions/:id/:userType/:userId    controllers.AuthoritativeSets.setItemPermissions(id: String, userType: String, userId: String)
+POST    /sets/permissions/:id/:userType/:userId    controllers.AuthoritativeSets.setItemPermissionsPost(id: String, userType: String, userId: String)
+GET     /sets/scope/:id/add    controllers.AuthoritativeSets.addScopedPermissions(id: String)
+GET     /sets/scope/:id/:userType/:userId    controllers.AuthoritativeSets.setScopedPermissions(id: String, userType: String, userId: String)
+POST    /sets/scope/:id/:userType/:userId    controllers.AuthoritativeSets.setScopedPermissionsPost(id: String, userType: String, userId: String)
+GET     /sets/annotate/:id     controllers.AuthoritativeSets.annotate(id: String)
+POST    /sets/annotate/:id     controllers.AuthoritativeSets.annotatePost(id: String)
+
+GET     /country                controllers.Countries.search
 GET     /country/show/:id       controllers.Countries.get(id: String)
 GET     /country/history/:id    controllers.Countries.history(id: String)
 GET     /country/json/:id       controllers.Countries.getJson(id: String)
@@ -217,7 +239,8 @@ POST    /country/scope/:id/:userType/:userId    controllers.Countries.setScopedP
 GET     /country/annotate/:id     controllers.Countries.annotate(id: String)
 POST    /country/annotate/:id     controllers.Countries.annotatePost(id: String)
 
-GET     /concepts                controllers.Concepts.list
+GET     /concepts                controllers.Concepts.search
+GET     /concepts/list           controllers.Concepts.list
 GET     /concepts/show/:id       controllers.Concepts.get(id: String)
 GET     /concepts/history/:id    controllers.Concepts.history(id: String)
 GET     /concepts/json/:id       controllers.Concepts.getJson(id: String)

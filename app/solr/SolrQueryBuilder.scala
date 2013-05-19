@@ -128,18 +128,20 @@ object SolrQueryBuilder {
    * @param userOpt
    * @return
    */
-  def simpleFilter(q: String, entityType: Option[EntityType.Value], page: Option[Int] = Some(1), limitOpt: Option[Int] = Some(100))(
+  def simpleFilter(q: String, entityType: Option[EntityType.Value], page: Option[Int] = Some(1), limitOpt: Option[Int] = Some(100),
+                    alphabetical: Boolean = false)(
     implicit userOpt: Option[UserProfile]): QueryRequest = {
 
-    val queryString = "name_ngram:%s".format(if(q.trim.isEmpty) "*" else q)
+    val queryString = if(q.trim.isEmpty) "*" else q
 
     val req: QueryRequest = new QueryRequest(Query(queryString))
     constrainEntities(req, entityType.toList)
     applyAccessFilter(req, userOpt)
     setGrouping(req)
-    req.set("qf", "name_ngram")
+    req.set("qf", "title^2.0 name_ngram")
     req.setFieldsToReturn(FieldsToReturn("id itemId name type"))
-    req.setSort(Sort("name asc"))
+    if (alphabetical) req.setSort(Sort("name_sort asc"))
+    req.setQueryParserType(QueryParserType("edismax"))
     // Setup start and number of objects returned
     val limit = limitOpt.getOrElse(SearchParams.DEFAULT_LIMIT)
     page.map { page =>
@@ -156,17 +158,23 @@ object SolrQueryBuilder {
    * @param params
    * @return
    */
-  def buildQuery(params: SearchParams, facets: List[AppliedFacet], allFacets: List[FacetClass], filters: Map[String,Any] = Map.empty)(
+  def search(params: SearchParams, facets: List[AppliedFacet], allFacets: List[FacetClass], filters: Map[String,Any] = Map.empty)(
       implicit userOpt: Option[UserProfile]): QueryRequest = {
 
-    val queryString = "%s".format(params.query.getOrElse("*").trim)
+    val queryString = params.query.getOrElse("*").trim
 
     val req: QueryRequest = new QueryRequest(Query(queryString))
+
+    // Always facet on item type
     req.setFacet(new FacetParams(
       enabled=true,
       params=List(new FacetParam(Param("facet.field"), Value("type")))
     ))
+
+    // Use edismax to parse the user query
     req.setQueryParserType(QueryParserType("edismax"))
+
+    // Highlight, which will at some point be implemented...
     req.setHighlighting(HighlightingParams(
         enabled=true,
         isPhraseHighlighterEnabled=IsPhraseHighlighterEnabled(true)))
@@ -183,10 +191,15 @@ object SolrQueryBuilder {
     // facility
     params.fields.filterNot(_.isEmpty).map { fieldList =>
       req.set("qf", fieldList.mkString(" "))
+    } getOrElse {
+      req.set("qf", "title^3.0 text")
     }
 
     // Mmmn, speckcheck
-    //req.set("spellcheck", "true")
+    // TODO: Add quality params here...
+    req.set("spellcheck", "true")
+    req.set("spellcheck.q", queryString)
+    req.set("spellcheck.extendedResults", "true")
 
     // Facet the request accordingly
     constrain(req, facets, allFacets)
@@ -194,7 +207,9 @@ object SolrQueryBuilder {
     // if we're using a specific index, constrain on that as well
     constrainEntities(req, params.entities)
 
-    // Testing...
+    // Only return what we immediately need to build a SearchDescription. We
+    // ignore nearly everything currently stored in Solr, instead fetching the
+    // data from the DB, but this might change in future.
     req.setFieldsToReturn(FieldsToReturn("id itemId type"))
 
     // Return only fields we care about...
@@ -225,12 +240,5 @@ object SolrQueryBuilder {
     setGrouping(req)
 
     req
-  }
-
-  def buildSearchUrl(query: QueryRequest) = {
-    "%s/select%s".format(
-      play.Play.application.configuration.getString("solr.path"),
-      query.queryString
-    )
   }
 }

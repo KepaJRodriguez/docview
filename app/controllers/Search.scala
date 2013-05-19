@@ -12,7 +12,7 @@ import models.{IsadG,Entity}
 import play.api.Logger
 import concurrent.Future
 import solr.SolrIndexer.{SolrErrorResponse, SolrResponse, SolrUpdateResponse}
-import solr.SolrIndexer
+import solr.{SearchOrder, SearchParams, SolrIndexer}
 import solr.facet.FieldFacetClass
 import play.api.i18n.Messages
 import views.Helpers
@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 object Search extends EntitySearch {
 
   val searchEntities = List() // i.e. Everything
-  val entityFacets = List(
+  override val entityFacets = List(
     FieldFacetClass(
       key=IsadG.LANG_CODE,
       name=Messages(IsadG.FIELD_PREFIX + "." + IsadG.LANG_CODE),
@@ -53,7 +53,9 @@ object Search extends EntitySearch {
    * Full text search action that returns a complete page of item data.
    * @return
    */
-  def search = searchAction { page => params => facets => implicit userOpt => implicit request =>
+  def search = searchAction(
+      defaultParams = Some(SearchParams(sort = Some(SearchOrder.Score)))) {
+      page => params => facets => implicit userOpt => implicit request =>
     request match {
       case Accepts.Html() => Ok(views.html.search.search(page, params, facets, routes.Search.search))
       case Accepts.Json() => Ok(Json.toJson(Json.obj(
@@ -121,17 +123,17 @@ object Search extends EntitySearch {
     /**
      * Update a single page of data
      */
-    def updatePage(entityType: EntityType.Value, page: rest.Page[Entity], chan: Concurrent.Channel[String]
+    def updatePage(entityType: EntityType.Value, params: RestPageParams, list: List[Entity], chan: Concurrent.Channel[String]
                     ): Future[List[SolrResponse]] = {
-      solr.SolrIndexer.updateItems(page.items.toStream, commit = false).map { jobs =>
+      solr.SolrIndexer.updateItems(list.toStream, commit = false).map { jobs =>
         jobs.map { response =>
           response match {
             case e: SolrErrorResponse => {
-              Logger.logger.error(s"Unable to page page data for entity: $entityType, page: ${page.page}: {}", e.err)
+              Logger.logger.error(s"Unable to page page data for entity: $entityType, page: ${list}: {}", e.err)
               e
             }
             case ok: SolrUpdateResponse => {
-              val msg = s"Batch complete: $entityType (${page.range}}, time: ${ok.time})"
+              val msg = s"Batch complete: $entityType (${params.range}, time: ${ok.time})"
               Logger.logger.info(msg)
               chan.push(wrapMsg(msg))
               ok
@@ -146,46 +148,48 @@ object Search extends EntitySearch {
      */
     def updateItemSet(entityType: EntityType.Value, pageNum: Int,
                       chan: Concurrent.Channel[String]): Future[List[SolrResponse]] = {
+      val params = RestPageParams(page=Some(pageNum), limit = Some(batchSize))
       val getData = EntityDAO(entityType, userOpt)
-            .page(RestPageParams(page=Some(pageNum), limit = Some(batchSize)))
-      getData.flatMap { pageOrErr =>
-        pageOrErr match {
+            .list(params)
+      getData.flatMap { listOrErr =>
+        listOrErr match {
           case Left(err) => {
             Logger.logger.error(s"Unable to page page data for entity: $entityType, page: ${pageNum}: {}", err)
-            Future.successful(List(SolrErrorResponse(pageOrErr.left.get)))
+            Future.successful(List(SolrErrorResponse(listOrErr.left.get)))
           }
-          case Right(page) => updatePage(entityType, pageOrErr.right.get, chan)
+          case Right(page) => updatePage(entityType, params, listOrErr.right.get, chan)
         }
       }
     }
 
     // Create an unicast channel in which to feed progress messages
     val channel = Concurrent.unicast[String] { chan =>
+      chan.push(wrapMsg(s"Initiating update for entities: ${entities.mkString(", ")}"))
       var all: List[Future[List[SolrResponse]]] = entities.map { entity =>
-        EntityDAO(entity, userOpt).page(RestPageParams(limit = Some(batchSize))).flatMap { firstPageOrErr =>
-          if (firstPageOrErr.isLeft) {
-            sys.error(s"Unable to fetch first page of data for $entity: " + firstPageOrErr.left.get)
+        EntityDAO(entity, userOpt).count().flatMap { countOrErr =>
+          if (countOrErr.isLeft) {
+            sys.error(s"Unable to fetch first page of data for $entity: " + countOrErr.left.get)
           }
-          val firstPage = firstPageOrErr.right.get
+          val count = countOrErr.right.get
+          chan.push(wrapMsg(s"Indexing: $entity (total count: $count)"))
+
+          val pageCount = (count / batchSize) + (count % batchSize).min(1)
 
           // Clear all Entities from the index...
           var allUpdateResponses: Future[List[SolrResponse]] = solr.SolrIndexer.deleteItemsByType(entity, commit = false).flatMap { response =>
             response match {
               case e: SolrErrorResponse => {
-                chan.push(s"Error deleting items for entity: $entity: ${e.err}")
+                chan.push(wrapMsg(s"Error deleting items for entity: $entity: ${e.err}"))
                 Future.successful(List(response))
               }
               case ok => {
-                // Since we've already fetched a page of data, reuse it immediately
-                var page1: Future[List[SolrResponse]] = updatePage(entity, firstPage, chan)
-
-                // Run the rest in sequence
-                var rest: List[Future[List[SolrResponse]]] = 2.to(firstPage.numPages.toInt).map { p =>
+                // Run each page in sequence...
+                var pages: List[Future[List[SolrResponse]]] = 1L.to(pageCount).map { p =>
                     updateItemSet(entity, p.toInt, chan)
                 }.toList
 
                 // Flatten the inner batch results into a single list
-                Future.sequence(page1 :: rest).map(l => l.flatMap(i => i))
+                Future.sequence(pages).map(l => l.flatMap(i => i))
               }
             }
           }
@@ -205,7 +209,7 @@ object Search extends EntitySearch {
         SolrIndexer.commit.map { resOrErr =>
           resOrErr match {
             case e: SolrErrorResponse => {
-              chan.push("Error committing Solr data: " + e.err)
+              chan.push(wrapMsg("Error committing Solr data: " + e.err))
             }
             case ok: SolrUpdateResponse => {
               chan.push(wrapMsg("Committed in " + ok.time))
