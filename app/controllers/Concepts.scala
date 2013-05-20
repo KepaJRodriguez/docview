@@ -86,9 +86,10 @@ object Concepts extends CreationContext[ConceptF, Concept]
     }
   }
 
-  def manage(id: String) = getWithChildrenAction(id, builder) { item => page => params => annotations => links =>
+  def manage(id: String) = getWithChildrenAction(id) { item => page => params => annotations => links =>
     implicit userOpt => implicit request =>
-      Ok(views.html.concept.manage(Concept(item), page, params, annotations))
+      Ok(views.html.concept.manage(
+        Concept(item), page.copy(items = page.items.map(Concept.apply)), params, annotations))
   }
 
   def history(id: String) = historyAction(id) { item => page => implicit userOpt => implicit request =>
