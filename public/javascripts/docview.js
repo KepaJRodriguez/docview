@@ -1,5 +1,23 @@
 jQuery(function($) {
 
+  $.fn.panner = function() {
+    var $self = this;
+    var width = $self.width();
+    var $inner = $("#descriptions", $self);
+    var $desc = $(".description", $inner);
+    $inner.css({
+      overflow: "auto"
+    }).width(width * $desc.length);
+    $desc.each(function(i, elem) {
+      $(elem).width(width);
+      $(elem).addClass("pull-left");
+    })
+    $self.css("overflow", "hidden");
+    $inner.css("marginLeft", width * ($desc.length - 1));
+  }
+
+  $("#description-viewport").panner();
+
   /**
    * jQuery plugin that makes an element 'stick' to the bottom
    * of the viewport if it is outside. Used for form action

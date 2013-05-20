@@ -37,6 +37,7 @@
 
         @defining(IsadG.FIELD_PREFIX) { implicit fieldPrefix =>
             @if(!item.descriptions.isEmpty) {
+                @*
                 <div class="tabbable">
                     <ul class="nav nav-tabs">
                          @item.descriptions.headOption.map { desc =>
@@ -66,6 +67,21 @@
                         }
                     </div>
                 </div>
+                *@
+
+                <div id="description-viewport">
+                    <ul>
+                    @item.descriptions.zipWithIndex.map { case (d, i) =>
+                        <li><a href="#@d.id" data-parent="#descriptions" data-toggle="collapse">@d.toString</a></li>
+                    }
+                    </ul>
+                    <div id="descriptions">
+                        @item.descriptions.zipWithIndex.map { case (d, i) =>
+                            @documentaryUnit.renderDescription(item, d, links)
+                        }
+                    </div>
+                </div>
+
             } else {
                 <p class="muted">@Messages("documentaryUnit.noDescriptions")</p>
                 <a href="@routes.DocumentaryUnits.createDescription(item.id)" class="btn btn-primary">@Messages("actions.createDescription")</a>
