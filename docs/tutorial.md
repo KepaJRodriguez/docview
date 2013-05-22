@@ -4,15 +4,15 @@
 
 For this tutorial we going to follow a case study of sorts, with two parts:
 
-#### Part 1
+*Part 1*
 
 > Allow a given user to create/update/delete both *repositories* and their *archival units*, but only for a particular country (the UK)
 
-#### Part 2
+*Part 2*
 
 > Create a repository for King's College London (KCL) and add the Hans Adler collection as an archival unit
 
-## Part 1 - Creating a group with the desired permissions, and adding a user
+#### Part 1 - Creating a group with the desired permissions, and adding a user
 
 First, we need to create a new group. To do this, first go to the groups page (located under the 'More...' menu.)
 
@@ -72,7 +72,7 @@ Once the user has been created, sign out of your admin account. The next part of
 
 ![Then sign out of the admin account](13_create_user_sign_out_small.png)
 
-## Part 2 - As the new user, create a new repository and add an archival unit
+#### Part 2 - As the new user, create a new repository and add an archival unit
 
 In the next part of this tutorial, we are going to create a new repository and add to it one archival collection. To create a repository, we first need to locate the country it resides in. This is because repositories "belong" to countries (in the database at least.)
 
