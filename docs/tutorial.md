@@ -1,3 +1,21 @@
+# EHRI Admin Tutorial
+
+## Introduction
+
+For this tutorial we going to follow a case study of sorts, with two parts:
+
+#### Part 1
+
+> Allow a given user to create/update/delete both *repositories* and their *archival units*, but only for a particular country (the UK)
+
+#### Part 2
+
+> Create a repository for King's College London (KCL) and add the Hans Adler collection as an archival unit
+
+## Part 1 - Creating a group with the desired permissions, and adding a user
+
+
+
 ![To create a group, first go to the More -> Groups menu ite](01_create_group_small.png)
 ![Then, click on the 'Create New Group' button](02_create_group_small.png)
 ![Fill out the desired group properties](03_create_group_small.png)
@@ -11,6 +29,9 @@
 ![The click the 'Create New User' button](11_create_user_small.png)
 ![Fill out the desired user properties and click 'Create User'](12_create_user_small.png)
 ![Then sign out of the admin account](13_create_user_sign_out_small.png)
+
+## Part 2 - As the new user, create a new repository and add an archival unit
+
 ![To create a repository, first find the country it is based in. Access countries through the More -> Countries menu item](14_create_repo_small.png)
 ![Then search for the country we want](15_create_repo_small.png)
 ![From the country's page, click the 'Create Repository' button](16_create_repo_small.png)
