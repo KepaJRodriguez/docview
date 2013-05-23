@@ -13,6 +13,7 @@ pages.admin.title=EHRI Admin
 pages.admin.message=Administration actions - careful now!
 pages.admin.userManagement=Manage Users
 pages.admin.searchAdmin=Manage Search Index
+pages.more=More
 
 forms.adminArea=Administration Area
 forms.logMessagePlaceholder=Tell people what you''re doing (optional)...
@@ -35,6 +36,7 @@ search.identifier=Identifier
 search.lastUpdated.desc=Recently Updated
 search.numDescriptions={0,choice,0#No descriptions|1#|1<{0,number,integer} Descriptions}
 search.spellingSuggestion=Did you mean
+search.queryPlaceholder=Search...
 
 footer.footerText=This is a development version of the EHRI data entry interface.
 
@@ -62,12 +64,13 @@ contentTypes.repository=Repositories
 contentTypes.historicalAgent=Authorities
 contentTypes.documentaryUnit=Collections
 contentTypes.action=User Events
-contentTypes.systemEvent=History
 contentTypes.cvocVocabulary=Vocabularies
 contentTypes.authoritativeSet=Authority Sets
 contentTypes.cvocConcept=Terms
 contentTypes.annotation=Annotations
 contentTypes.country=Countries
+contentTypes.link=Links
+contentTypes.systemEvent=History
 
 #
 # Permission Types
@@ -129,7 +132,14 @@ concept.narrowerTerms=Narrower Terms
 concept.narrowerTermsPageHeader={2,choice,0#No narrower terms found|1#One narrower term found|1<Narrower terms {0,number,integer} to {1,number,integer} of {2,number,integer}}
 vocabulary.toplevelTermsPageHeader={2,choice,0#No top-level terms found|1#One top-level term found|1<Top-level terms {0,number,integer} to {1,number,integer} of {2,number,integer}}
 vocabulary.description=Description
+vocabulary.items=Search Terms
+
+#
+# Countries
+#
 country.repositoriesPageHeader={2,choice,0#No repositories found|1#One repository found|1<Repositories {0,number,integer} to {1,number,integer} of {2,number,integer}}
+country.search=Search Countries
+country.searchInside=Search Repositories
 
 #
 # Authority set
@@ -165,6 +175,7 @@ users.realname=Full Name
 users.password=Password
 users.passwordConfirm=Confirm Password
 users.groups=Group Membership
+users.search=Search Users
 
 #
 # Groups
@@ -268,6 +279,7 @@ actions.linkAnnotate=Link ''{0}'' to ''{1}''
 actions.annotateThisItem=Annotate Item
 actions.manageGroups=Manage Groups
 actions.manageAccessPoints=Manage Access Points
+actions.revokePermission=Revoke
 
 # Submit buttons
 submitButton.createDocumentaryUnit=Create Collection
@@ -349,6 +361,7 @@ documentaryUnit.search=Search Top-level Descriptions
 # Repositories
 #
 repository.search=Search Repositories
+repository.searchInside=Search items held by {0}
 
 #
 # Historical Agents

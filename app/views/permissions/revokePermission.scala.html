@@ -1,9 +1,9 @@
-@(item: AccessibleEntity, action: Call, cancel: Call)(
+@(item: Accessor, perm: PermissionGrant, action: Call, cancel: Call)(
 implicit userOpt: Option[UserProfile], request: RequestHeader, flash: Flash, token: play.filters.csrf.CSRF.Token)
 
-@rightSidebarLayout(Messages("actions.deleteItem", item), breadcrumbs = common.breadcrumbs(List(item))) {
+@rightSidebarLayout(Messages("actions.deleteItem", perm), breadcrumbs = common.breadcrumbs(List(item))) {
 
-    <p>@Messages("deleting.deleteConfirmationMessage", item.toString)</p>
+    <p>@Messages("deleting.deleteConfirmationMessage", perm)</p>
     @helper.form(action = helper.CSRF(action), 'class -> "form-actions") {
 
         @common.submitButtonWithLogMessageInput(Messages("submitButton.deleteItem")) {
