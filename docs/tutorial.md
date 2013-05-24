@@ -88,7 +88,7 @@ Next, from within the UK country page, click the "Create Repository" button on t
 
 ![From the country's page, click the 'Create Repository' button](16_create_repo_small.png)
 
-Fill out the relevant fields, based on the ISDIAH standard.  *Note*: for the moment, just choose an arbitrary identifier field.  Then, click the "Create Repository" button at the bottom.
+Fill out the relevant fields, based on the ISDIAH standard.  *Note*: the 'identifier' value will be pre-filled and should should leave it as-is.  Then, click the "Create Repository" button at the bottom.
 
 ![Fill out the relevant ISDIAH properties for the new repository and click 'Create Repository'](17_create_repo_small.png)
 
