@@ -138,8 +138,6 @@ object Repositories extends EntityRead[Repository]
 
   def createDocPost(id: String) = childCreatePostAction(id, childForm, ContentType.DocumentaryUnit) {
       item => formsOrItem => implicit userOpt => implicit request =>
-    import play.filters.csrf._
-    implicit val token: Option[Token] = CSRF.getToken(request)
     formsOrItem match {
       case Left((errorForm,accForm)) => getUsersAndGroups { users => groups =>
         BadRequest(views.html.documentaryUnit.create(Repository(item),
@@ -147,6 +145,62 @@ object Repositories extends EntityRead[Repository]
       }
       case Right(citem) => Redirect(routes.DocumentaryUnits.get(citem.id))
         .flashing("success" -> Messages("confirmations.itemWasCreated", citem.id))
+    }
+  }
+
+  def createDocWithCreator(id: String, cid: String) = childCreateAction(id, ContentType.DocumentaryUnit) {
+    item => users => groups => implicit userOpt => implicit request =>
+      Ok(views.html.documentaryUnit.create(Repository(item), childForm,
+        VisibilityForm.form, users, groups, routes.Repositories.createDocWithCreatorPost(id, cid)))
+  }
+
+  /**
+   * Inline method of creating a documentary unit in a given repository,
+   * and the creating a linked access point to a particular authority file
+   * representing the creator.
+   *
+   * TODO: Improve this drastically. If we keep doing this enough it'll become clearer.
+   * @param id
+   * @param cid
+   * @return
+   */
+  def createDocWithCreatorPost(id: String, cid: String) = userProfileAction { implicit userOpt => implicit request =>
+    // First, fetch the authority...
+    getEntity(EntityType.HistoricalAgent, cid) { creatorEntity =>
+      val creator = HistoricalAgent(creatorEntity)
+
+      childCreatePostAction(id, childForm, ContentType.DocumentaryUnit) {
+          item => formsOrItem => implicit userOpt => implicit request =>
+
+        formsOrItem match {
+          case Left((errorForm,accForm)) => getUsersAndGroups { users => groups =>
+            BadRequest(views.html.documentaryUnit.create(Repository(item),
+              errorForm, accForm, users, groups, routes.Repositories.createDocWithCreatorPost(id, cid)))
+          }
+          case Right(citem) => {
+            // FIXME: If no descriptions were created we're in trouble, so crash!
+            val did = DocumentaryUnit(citem).descriptions.head.id
+            val point = new AccessPointF(id = None,
+                `type` = AccessPointF.AccessPointType.CreatorAccess, name = creator.toString)
+            AsyncRest {
+              rest.DescriptionDAO(userOpt).createAccessPoint(citem.id, did, point).map { apOrErr =>
+                apOrErr.right.map { ap =>
+                  // Create an associative link
+                  val ld = new LinkF(linkType=LinkF.LinkType.Associative)
+                  AsyncRest {
+                    rest.LinkDAO(userOpt).link(citem.id, cid, ld, Some(ap.id)).map { linkOrErr =>
+                      linkOrErr.right.map { link =>
+                        Redirect(routes.DocumentaryUnits.get(citem.id))
+                          .flashing("success" -> Messages("confirmations.itemWasCreated", citem.id))
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }(request)
     }
   }
 
